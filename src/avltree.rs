@@ -15,7 +15,6 @@ pub struct Node{
     left: Link,
     right: Link,
     balance_factor: i32,
-    is_default: bool,
 }
 
 impl Node{
@@ -27,14 +26,11 @@ impl Node{
             value: value,
             left: None,
             right: None,
-            is_default: false,
         }
     }
 
     fn default() -> Node{
-        let mut default_node = Node::new(0, 0);
-        default_node.is_default = true;
-        default_node
+        Node::new(0, 0)
     }
 
     fn new_link(key: i32, value: i32) -> Link{
@@ -171,11 +167,11 @@ impl AvlTree{
     }
 
     fn rotate_left_right(node: Box<Node>) -> Box<Node> {
-        node
+        AvlTree::rotate_right(AvlTree::rotate_left(node))
     }
 
     fn rotate_right_left(node: Box<Node>) -> Box<Node> {
-        node
+        AvlTree::rotate_left(AvlTree::rotate_right(node))
     }
 
     //update the height of a node after insertion 
@@ -207,11 +203,8 @@ impl AvlTree{
 
     //prints a level of the tree in the console
     fn _print_node(nodes: Vec<&Link>, depth: usize, total_nodes: usize) {
-        let separation = " ".repeat(total_nodes - depth);
         let mut next_level: Vec<&Link> = Vec::new();
         let mut nnodes = 0;
-        let mut left: Link = None;
-        let mut right: Link = None;
         for node in nodes {
             if node.is_some(){
                 print!(" {:?} ", (node.as_ref().unwrap().balance_factor));
@@ -230,5 +223,28 @@ impl AvlTree{
             AvlTree::_print_node(next_level, depth+1, total_nodes);
         }
     }
+}
 
+#[test]
+fn test_insert_1000(){
+    let mut avl_tree = AvlTree::new();
+    for i in 0..1000{
+        avl_tree.insert(i,i);
+    }
+
+    assert_eq!(1000, avl_tree.size);
+}
+
+#[test]
+fn test_insert_1000_non_unique(){
+    let mut avl_tree = AvlTree::new();
+    for i in 0..1000{
+        avl_tree.insert(i,i);
+    }
+
+    for i in 0..1000{
+        avl_tree.insert(i,i);
+    }
+
+    assert_eq!(1000, avl_tree.size);
 }
