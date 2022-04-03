@@ -7,6 +7,11 @@ type Link = Option<Box<Node>>;
 // depeneed means if the subnode has been depeneed (a node without childrens that has been added a new children)
 type InsertResult = (bool, bool);
 
+enum ChildDirection{
+    Left,
+    Right
+}
+
 #[derive(Debug, Clone)]
 pub struct Node{
     height: i32,
@@ -122,6 +127,81 @@ impl AvlTree{
             self.size += 1;
             (Node::new_link(key, value), true)
         }
+    }
+
+    pub fn delete(&mut self, key: i32) {
+        self.root = AvlTree::_delete(self.root, key);
+    }
+
+    fn _delete(node: Link, key: i32) -> Link {
+        match node {
+            Some(mut node_value) => {
+                match node_value.key.cmp(&key) {
+                    Ordering::Equal => {
+                        return AvlTree::delete_node(node_value);
+                    },
+                    Ordering::Less => {
+                        node_value.left = AvlTree::_delete(node_value.left, key);
+                        Some(node_value)
+                    },
+                    Ordering::Greater => {
+                        node_value.right = AvlTree::_delete(node_value.right, key);
+                        Some(node_value)
+                    }
+                }
+            },
+            None => {
+                None
+            }
+        }
+    }
+
+    pub fn delete_node(node: Box<Node>) -> Link {
+        let n_childrens = AvlTree::n_childrens(&node);
+
+        match n_childrens {
+            0 => return None,
+            1 => {
+                if node.left.is_some(){
+                    return node.left;
+                }else{
+                    return node.right;
+                }
+            },
+            2 => {
+                //search the inorder predecesor and swap with it 
+                return AvlTree::delete_node_with_childrens(node);
+            },
+            _ => { unreachable!() }
+        }
+
+        None
+    }
+
+    fn delete_node_with_childrens(node: Box<Node>) -> Link {
+
+    }
+
+    pub fn compare_link(node: Link, key: i32) -> bool{
+        node.as_ref().unwrap().key == key
+    }
+
+    pub fn compare_node(node: &Box<Node>, key: i32) -> bool {
+        //returns true if the node has the same key
+        node.key == key
+    }
+
+    //returns the number of childrens in the first level of a node
+    pub fn n_childrens(node: &Box<Node>) -> usize {
+        let mut result = 0;
+        if node.left.is_some(){result += 1;}
+        if node.right.is_some(){result += 1;}
+
+        result
+    }
+
+    pub fn has_childrens(node: &Box<Node>) -> bool {
+        node.left.is_some() && node.right.is_some()
     }
 
     //balance a node after insertion 
