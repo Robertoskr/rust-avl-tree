@@ -138,7 +138,15 @@ impl AvlTree{
             Some(mut node_value) => {
                 match node_value.key.cmp(&key) {
                     Ordering::Equal => {
-                        return AvlTree::delete_node(node_value);
+                        let mut result = AvlTree::delete_node(node_value);
+                        match result {
+                            Some(mut node) => {
+                                AvlTree::update_node(&mut node);
+                                node = AvlTree::balance_node(node);
+                                return Some(node);
+                            }
+                        }
+                        result //if we return here, the result is none 
                     },
                     Ordering::Less => {
                         node_value.left = AvlTree::_delete(node_value.left, key);
@@ -170,6 +178,7 @@ impl AvlTree{
             },
             2 => {
                 //search the inorder predecesor and swap with it 
+                let mut node = node;
                 return AvlTree::delete_node_with_childrens(node);
             },
             _ => { unreachable!() }
@@ -178,8 +187,20 @@ impl AvlTree{
         None
     }
 
-    fn delete_node_with_childrens(node: Box<Node>) -> Link {
+    fn delete_node_with_childrens(mut node: Box<Node>) -> Link {
+        //search the inorder predecesor of this node 
 
+        let mut startNode = node.right;
+        while let Some(actual_node) = startNode {
+            match actual_node.left.is_some() {
+                true => startNode = actual_node.left,
+                false => break
+            }
+        }
+
+        node.value = startNode.as_ref().unwrap().value;
+
+        Some(node)
     }
 
     pub fn compare_link(node: Link, key: i32) -> bool{
